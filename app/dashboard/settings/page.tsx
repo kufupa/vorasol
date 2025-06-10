@@ -12,7 +12,6 @@ export default function SettingsPage() {
           This page will contain various settings for the HRMS application, such as user roles, notification
           preferences, company details, etc.
         </p>
-        {/* Placeholder for settings form */}
       </CardContent>
     </Card>
   )

@@ -9,11 +9,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import type { Driver } from "@/lib/types"
 import { UploadCloud, CalendarIcon } from "lucide-react"
 
-export default function FinancialsForm({ driver }: { driver: Driver }) {
-  // In a real app, use react-hook-form or similar
+export default function FinancialsForm({
+  driver,
+  onSave,
+}: { driver: Driver; onSave: (data: Partial<Driver>) => void }) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle form submission
     console.log("Financials form submitted for driver:", driver.id)
   }
 
@@ -21,7 +22,7 @@ export default function FinancialsForm({ driver }: { driver: Driver }) {
     <form
       id="financials-form"
       onSubmit={handleSubmit}
-      className="space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto pr-2"
+      className="space-y-6 max-h-[calc(100vh-250px)] overflow-y-auto pr-2"
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
@@ -110,8 +111,6 @@ export default function FinancialsForm({ driver }: { driver: Driver }) {
         <Label htmlFor="simOverusage">SIM Overusage (AED)</Label>
         <Input id="simOverusage" type="number" placeholder="e.g., 15" />
       </div>
-      {/* Submit button is in SheetFooter, but we might need a separate one if forms are independent */}
-      {/* <Button type="submit" className="w-full">Save Financials</Button> */}
     </form>
   )
 }

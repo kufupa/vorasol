@@ -12,7 +12,6 @@ export default function FinancialOverviewPage() {
           This page will display financial summaries, reports, and tools for managing rider financials. Detailed rider
           financials can be accessed via their profile.
         </p>
-        {/* Placeholder for financial charts, tables, and tools */}
       </CardContent>
     </Card>
   )

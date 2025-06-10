@@ -8,15 +8,25 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { driverSchema } from "@/lib/validations"
-import type { Driver } from "@/lib/types"
+import type { Driver, AttendanceStatusUnion, Company } from "@/lib/types"
 
 interface AddEditDriverFormProps {
   onSave: (data: z.infer<typeof driverSchema>) => void
   driverToEdit: Driver | null
   onFinished: () => void
+  companies: Company[] // Pass companies for dropdown
+  pocs: string[] // Pass POCs for dropdown
 }
 
-export default function AddEditDriverForm({ onSave, driverToEdit, onFinished }: AddEditDriverFormProps) {
+const attendanceStatuses: AttendanceStatusUnion[] = ["Present", "Absent", "Late", "Not Logged In", "Day Off"]
+
+export default function AddEditDriverForm({
+  onSave,
+  driverToEdit,
+  onFinished,
+  companies,
+  pocs,
+}: AddEditDriverFormProps) {
   const form = useForm<z.infer<typeof driverSchema>>({
     resolver: zodResolver(driverSchema),
     defaultValues: {
@@ -24,6 +34,8 @@ export default function AddEditDriverForm({ onSave, driverToEdit, onFinished }: 
       id: driverToEdit?.id || "",
       workHours: driverToEdit?.workHours || "",
       presence: driverToEdit?.presence || "Not Logged In",
+      companyId: driverToEdit?.companyId || companies[0]?.id || "",
+      poc: driverToEdit?.poc || pocs[0] || "",
     },
   })
 
@@ -62,6 +74,54 @@ export default function AddEditDriverForm({ onSave, driverToEdit, onFinished }: 
         />
         <FormField
           control={form.control}
+          name="companyId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Company</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select company" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {companies.map((company) => (
+                    <SelectItem key={company.id} value={company.id}>
+                      {company.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="poc"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Point of Contact (POC)</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select POC" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {pocs.map((poc) => (
+                    <SelectItem key={poc} value={poc}>
+                      {poc}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
           name="workHours"
           render={({ field }) => (
             <FormItem>
@@ -86,10 +146,11 @@ export default function AddEditDriverForm({ onSave, driverToEdit, onFinished }: 
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="Present">Present</SelectItem>
-                  <SelectItem value="Absent">Absent</SelectItem>
-                  <SelectItem value="Late">Late</SelectItem>
-                  <SelectItem value="Not Logged In">Not Logged In</SelectItem>
+                  {attendanceStatuses.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <FormMessage />
