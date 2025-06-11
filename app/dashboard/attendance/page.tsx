@@ -117,7 +117,7 @@ dateInterval.forEach((date) => {
     if (isDriverScheduledOff(driver.id, date)) {
       status = "Day Off"
     } else {
-      status = statuses[Math.floor(Math.random() * (statuses.length - 1))]
+      status = statuses[Math.floor(Math.random() * 4) + 1]
       if (status === "Day Off") status = "Not Logged In"
     }
     initialAttendance.push({
@@ -203,10 +203,10 @@ export default function DriverAttendancePage() {
 
   const handleExportCsv = () => {
     let csvContent = `data:text/csv;charset=utf-8,Driver ID,Driver Name,Date,Status,Work Hours,Timestamp,POC,Company ID
-`;
+`
     filteredAttendance.forEach((row) => {
       csvContent += `${row.driverId},${row.driverName},${format(row.date, "yyyy-MM-dd")},${row.status},${row.workHours || ""},${row.timestamp || ""},${row.poc || ""},${row.companyId || ""}
-`;
+`
     })
     const encodedUri = encodeURI(csvContent)
     const link = document.createElement("a")
@@ -332,6 +332,7 @@ export default function DriverAttendancePage() {
               </Select>
             </div>
           </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>
