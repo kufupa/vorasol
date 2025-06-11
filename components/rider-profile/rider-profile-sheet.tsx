@@ -1,3 +1,5 @@
+"use client"
+
 import {
   Sheet,
   SheetContent,
@@ -17,9 +19,10 @@ interface RiderProfileSheetProps {
   driver: Driver
   isOpen: boolean
   onOpenChange: (isOpen: boolean) => void
+  onSaveDriver: (driverData: Partial<Driver>) => void
 }
 
-export default function RiderProfileSheet({ driver, isOpen, onOpenChange }: RiderProfileSheetProps) {
+export default function RiderProfileSheet({ driver, isOpen, onOpenChange, onSaveDriver }: RiderProfileSheetProps) {
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
       <SheetContent className="sm:max-w-2xl w-full p-0">
@@ -36,21 +39,29 @@ export default function RiderProfileSheet({ driver, isOpen, onOpenChange }: Ride
               <TabsTrigger value="financials">Financials</TabsTrigger>
             </TabsList>
             <TabsContent value="personal" className="mt-4">
-              <PersonalInfoForm driver={driver} />
+              <PersonalInfoForm driver={driver} onSave={onSaveDriver} />
             </TabsContent>
             <TabsContent value="financials" className="mt-4">
-              <FinancialsForm driver={driver} />
+              <FinancialsForm driver={driver} onSave={onSaveDriver} />
             </TabsContent>
           </Tabs>
         </div>
-        <SheetFooter className="p-6 pt-0">
+        <SheetFooter className="p-6 pt-0 border-t">
           <SheetClose asChild>
             <Button variant="outline">Close</Button>
           </SheetClose>
-          <Button type="submit" form="personal-info-form">
+          <Button
+            type="submit"
+            onClick={() => {
+              const activeTab = document.querySelector('[data-state="active"][role="tabpanel"]')
+              const formId = activeTab?.querySelector("form")?.id
+              if (formId) {
+                document.getElementById(formId)?.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }))
+              }
+            }}
+          >
             Save Changes
           </Button>
-          {/* Assuming forms have IDs like "personal-info-form" and "financials-form" */}
         </SheetFooter>
       </SheetContent>
     </Sheet>

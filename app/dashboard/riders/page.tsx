@@ -13,7 +13,6 @@ export default function RiderProfilesPage() {
           dedicated page). For now, rider profiles can be accessed via the "Edit" button on the Dashboard Overview's
           Driver Status table.
         </p>
-        {/* Placeholder for rider list and management tools */}
       </CardContent>
     </Card>
   )

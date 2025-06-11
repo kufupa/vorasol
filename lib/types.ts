@@ -7,13 +7,28 @@ export interface Company {
   totalDrivers: number
 }
 
+export type AttendanceStatusUnion = "Present" | "Absent" | "Late" | "Not Logged In" | "Day Off"
+
 export interface Driver {
-  id: string // Driver ID
+  id: string
   name: string
+  companyId: string
   workHours: string
-  presence: "Present" | "Absent" | "Late" | "Not Logged In"
-  employeeId: string // Employee ID from Rider Personal Info
-  contact: string // Contact Numbers from Rider Personal Info
-  poc: string // Point of Contact from Rider Personal Info
-  // Add other fields from Rider Profile as needed for table or modal
+  presence: AttendanceStatusUnion
+  employeeId: string
+  contact: string
+  poc: string
+  scheduledOffDays: string[]
+  nextWorkingDay: string | null
+}
+
+export interface AttendanceRecord {
+  date: Date
+  status: AttendanceStatusUnion
+  workHours?: string
+  timestamp?: string
+  driverId: string
+  driverName?: string
+  poc?: string
+  companyId?: string // Added companyId
 }
