@@ -27,17 +27,17 @@ export function convertApiDriverToDriver(apiDriver: ApiDriver): Driver {
   }
 
   // Calculate work hours (simplified - you might want to enhance this)
-  const workHours = apiDriver.presence_status === "checked_in" ? "8h 0m" : "0h 0m"
+  const workHours = apiDriver.current_status === "checked_in" ? "8h 0m" : "0h 0m"
 
   return {
     id: apiDriver.employee_id,
     name: apiDriver.name,
     workHours,
-    presence: presenceMap[apiDriver.presence_status] || "Not Logged In",
+    presence: presenceMap[apiDriver.current_status] || "Not Logged In",
     employeeId: apiDriver.employee_id,
     contact: "N/A", // Not available in API
     poc: "N/A", // Not available in API
-    lastUpdate: apiDriver.last_update,
+    lastUpdate: apiDriver.last_updated,
     location: apiDriver.location,
   }
 }
@@ -137,34 +137,45 @@ export class ApiService {
       throw error
     }
   }
-
   // Admin APIs (public access)
   static async getDashboard(): Promise<DashboardData> {
     try {
       const response = await fetch(`${API_BASE_URL}/admin/dashboard`)
-      const data: ApiResponse<DashboardData> = await response.json()
+      const data: any = await response.json()
       
       if (!data.success || !data.data) {
         throw new Error(data.message || "Failed to fetch dashboard data")
       }
       
-      return data.data
+      // Transform backend response to frontend format
+      const backendData = data.data
+      return {
+        total_drivers: backendData.total_drivers,
+        checked_in: backendData.by_status?.CHECKED_IN || 0,
+        on_break: backendData.by_status?.ON_BREAK || 0,
+        off_duty: backendData.by_status?.OFF_DUTY || 0,
+        absent: (backendData.by_status?.ABSENT || 0) + 
+                (backendData.by_status?.NOT_CHECKED_IN || 0) + 
+                (backendData.by_status?.HOLIDAY || 0) + 
+                (backendData.by_status?.SICK_LEAVE || 0),
+        timestamp: backendData.last_updated
+      }
     } catch (error) {
       console.error("Error fetching dashboard:", error)
       throw error
     }
   }
-
   static async getDriversByStatus(status: string): Promise<ApiDriver[]> {
     try {
       const response = await fetch(`${API_BASE_URL}/admin/drivers/${status}`)
-      const data: ApiResponse<{ drivers: ApiDriver[]; count: number }> = await response.json()
+      const data: any = await response.json()
       
-      if (!data.success || !data.data) {
+      if (!data.success) {
         throw new Error(data.message || "Failed to fetch drivers")
       }
       
-      return data.data.drivers
+      // Backend returns drivers directly, not nested under data
+      return data.drivers || []
     } catch (error) {
       console.error("Error fetching drivers:", error)
       throw error

@@ -27,8 +27,10 @@ export interface DriverLocation {
 export interface ApiDriver {
   employee_id: string
   name: string
-  presence_status: "not_checked_in" | "checked_in" | "on_break" | "off_duty" | "holiday" | "sick_leave" | "absent"
-  last_update: string
+  current_status: "not_checked_in" | "checked_in" | "on_break" | "off_duty" | "holiday" | "sick_leave" | "absent"
+  last_updated: string
+  check_in_time?: string
+  check_out_time?: string
   location?: DriverLocation
 }
 
