@@ -8,7 +8,10 @@ import type {
   CheckinRequest,
   CheckinResponse,
   ArchiveResponse,
-  HealthResponse 
+  HealthResponse,
+  EditDriverRequest,
+  EditDriverResponse,
+  ValidationErrorResponse
 } from "./types"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
@@ -290,5 +293,47 @@ export class ApiService {
       "Late": "checked_in", // Map Late to checked_in as it's not in backend
     }
     return displayMap[display] || "not_checked_in"
+  }
+  
+  static async editDriver(employeeId: string, updateData: EditDriverRequest): Promise<EditDriverResponse> {
+    try {
+      // Convert frontend presence display to backend status if presence is provided
+      const backendUpdateData = { ...updateData }
+      if (backendUpdateData.presence) {
+        backendUpdateData.presence = this.convertDisplayToPresenceStatus(backendUpdateData.presence)
+      }
+      
+      const response = await fetch(`${API_BASE_URL}/admin/edit-driver/${employeeId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(backendUpdateData),
+      })
+      
+      // Handle 422 validation errors separately
+      if (response.status === 422) {
+        const validationError: ValidationErrorResponse = await response.json()
+        const errorMessages = validationError.detail?.map((err) => err.msg).join(", ") || "Validation failed"
+        throw new Error(`Validation Error: ${errorMessages}`)
+      }
+      
+      // Handle other non-200 status codes
+      if (!response.ok) {
+        throw new Error(`HTTP Error: ${response.status} ${response.statusText}`)
+      }
+      
+      const data: EditDriverResponse = await response.json()
+      
+      // Handle business logic errors (success: false)
+      if (!data.success) {
+        throw new Error(data.message || "Failed to update driver")
+      }
+      
+      return data
+    } catch (error) {
+      console.error("Error updating driver:", error)
+      throw error
+    }
   }
 }

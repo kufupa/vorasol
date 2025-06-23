@@ -23,16 +23,31 @@ export default function PersonalInfoForm({ driver }: { driver: Driver }) {
       id="personal-info-form"
       onSubmit={handleSubmit}
       className="space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto pr-2"
-    >
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    >      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Label htmlFor="employeeId">Employee ID</Label>
           <Input id="employeeId" defaultValue={driver.employeeId} />
         </div>
         <div>
           <Label htmlFor="contactNumbers">Contact Numbers</Label>
-          <Input id="contactNumbers" defaultValue={driver.contact} />
+          <Input id="contactNumbers" defaultValue={driver.phone || driver.contact} />
         </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="email">Email Address</Label>
+          <Input id="email" type="email" defaultValue={driver.email || ""} />
+        </div>
+        <div>
+          <Label htmlFor="passport">Passport Number</Label>
+          <Input id="passport" defaultValue={driver.passport || ""} />
+        </div>
+      </div>
+
+      <div>
+        <Label htmlFor="hireDate">Hire Date</Label>
+        <Input id="hireDate" type="date" defaultValue={driver.hire_date || ""} />
       </div>
 
       <div>

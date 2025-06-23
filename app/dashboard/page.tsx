@@ -150,25 +150,80 @@ export default function DashboardOverviewPage() {
     setDriverToEdit(null)
     setIsDriverModalOpen(true)
   }
-
   const handleOpenEditDriverModal = (driver: Driver) => {
     setDriverToEdit(driver)
     setIsDriverModalOpen(true)
   }
-
+  
   const handleSaveDriver = async (data: z.infer<typeof driverSchema>) => {
     if (driverToEdit) {
-      // Edit existing driver (for now, just update locally since backend doesn't have update driver endpoint)
-      setDrivers(drivers.map((d) => (d.id === driverToEdit.id ? { ...d, ...data } : d)))
+      // Edit existing driver - use real API call
+      try {
+        const updateData: any = {}
+        
+        // Only include fields that have values or have changed
+        if (data.name && data.name !== driverToEdit.name) updateData.name = data.name
+        if (data.passport && data.passport !== driverToEdit.passport) updateData.passport = data.passport
+        if (data.phone && data.phone !== driverToEdit.phone) updateData.phone = data.phone
+        if (data.email && data.email !== driverToEdit.email) updateData.email = data.email
+        if (data.hire_date && data.hire_date !== driverToEdit.hire_date) updateData.hire_date = data.hire_date
+        if (data.presence && data.presence !== driverToEdit.presence) updateData.presence = data.presence
+        
+        // If no fields to update, just close modal
+        if (Object.keys(updateData).length === 0) {
+          setIsDriverModalOpen(false)
+          showToast("No changes detected.", "success")
+          return
+        }
+        
+        const response = await ApiService.editDriver(driverToEdit.employeeId, updateData)
+        
+        if (response.success && response.driver_info) {
+          // Update local state with the updated driver data
+          const updatedDriver: Driver = {
+            id: response.driver_info.employee_id,
+            name: response.driver_info.name,
+            employeeId: response.driver_info.employee_id,
+            presence: ApiService.convertPresenceStatusToDisplay(response.driver_info.presence_status) as Driver["presence"],
+            workHours: data.workHours || driverToEdit.workHours || "0h 0m",
+            contact: data.phone || response.driver_info.phone || "N/A",
+            poc: driverToEdit.poc || "N/A",
+            lastUpdate: new Date().toISOString(),
+            passport: response.driver_info.passport,
+            phone: response.driver_info.phone,
+            email: response.driver_info.email,
+            hire_date: response.driver_info.hire_date,
+          }
+          
+          setDrivers(drivers.map((d) => (d.id === driverToEdit.id ? updatedDriver : d)))
+          showToast("Driver updated successfully!", "success")
+          
+          // Refresh dashboard data to reflect changes in overview
+          await refreshData()        }
+      } catch (error) {
+        console.error("Error updating driver:", error)
+        
+        // Provide more specific error messages
+        const errorMessage = error instanceof Error ? error.message : "Unknown error occurred"
+        if (errorMessage.includes("Validation Error:")) {
+          showToast(`Validation failed: ${errorMessage.replace("Validation Error: ", "")}`, "error")
+        } else if (errorMessage.includes("HTTP Error:")) {
+          showToast(`Server error: ${errorMessage.replace("HTTP Error: ", "")}`, "error")
+        } else {
+          showToast("Failed to update driver. Please try again.", "error")
+        }
+      }
     } else {
-      // Add new driver (for now, just add locally since backend doesn't have create driver endpoint)
+      // Add new driver (still local only since backend doesn't have create driver endpoint)
       const newDriver: Driver = {
         ...data,
         id: `D${Date.now()}`,
-        employeeId: `E${Date.now()}`,
-        contact: "N/A",
+        employeeId: data.id,
+        contact: data.phone || "N/A",
         poc: "N/A",
-        workHours: data.workHours || "0h 0m",      }
+        workHours: data.workHours || "0h 0m",
+        lastUpdate: new Date().toISOString(),
+      }
       setDrivers([...drivers, newDriver])
       showToast("Driver added successfully (local only).", "success")
     }

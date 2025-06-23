@@ -45,6 +45,11 @@ export interface Driver {
   poc: string // will be N/A for now since not in API
   lastUpdate?: string
   location?: DriverLocation
+  // Additional optional fields from backend
+  passport?: string
+  phone?: string
+  email?: string
+  hire_date?: string
 }
 
 // Company/Client - keeping for now but may need to be updated based on backend
@@ -104,4 +109,38 @@ export interface HealthResponse {
   timestamp: string
   version: string
   database: string
+}
+
+// Edit Driver Request/Response
+export interface EditDriverRequest {
+  name?: string
+  passport?: string
+  phone?: string
+  email?: string
+  hire_date?: string
+  presence?: string // New field for updating presence status
+}
+
+export interface EditDriverResponse {
+  success: boolean
+  message: string
+  driver_info?: {
+    employee_id: string
+    name: string
+    passport: string
+    phone: string
+    email: string
+    hire_date: string
+    presence_status: string
+  } | null
+}
+
+// Validation Error Response (422 status)
+export interface ValidationErrorResponse {
+  detail: Array<{
+    type: string
+    loc: string[]
+    msg: string
+    input: any
+  }>
 }

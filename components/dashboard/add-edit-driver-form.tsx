@@ -16,14 +16,17 @@ interface AddEditDriverFormProps {
   onFinished: () => void
 }
 
-export default function AddEditDriverForm({ onSave, driverToEdit, onFinished }: AddEditDriverFormProps) {
-  const form = useForm<z.infer<typeof driverSchema>>({
+export default function AddEditDriverForm({ onSave, driverToEdit, onFinished }: AddEditDriverFormProps) {  const form = useForm<z.infer<typeof driverSchema>>({
     resolver: zodResolver(driverSchema),
     defaultValues: {
       name: driverToEdit?.name || "",
       id: driverToEdit?.id || "",
       workHours: driverToEdit?.workHours || "",
       presence: driverToEdit?.presence || "Not Logged In",
+      passport: driverToEdit?.passport || "",
+      phone: driverToEdit?.phone || "",
+      email: driverToEdit?.email || "",
+      hire_date: driverToEdit?.hire_date || "",
     },
   })
 
@@ -59,8 +62,7 @@ export default function AddEditDriverForm({ onSave, driverToEdit, onFinished }: 
               <FormMessage />
             </FormItem>
           )}
-        />
-        <FormField
+        />        <FormField
           control={form.control}
           name="workHours"
           render={({ field }) => (
@@ -68,6 +70,58 @@ export default function AddEditDriverForm({ onSave, driverToEdit, onFinished }: 
               <FormLabel>Work Hours (Optional)</FormLabel>
               <FormControl>
                 <Input placeholder="e.g., 8h 15m" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="passport"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Passport Number (Optional)</FormLabel>
+              <FormControl>
+                <Input placeholder="e.g., P123456789" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="phone"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Phone Number (Optional)</FormLabel>
+              <FormControl>
+                <Input placeholder="e.g., +971501234567" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email Address (Optional)</FormLabel>
+              <FormControl>
+                <Input type="email" placeholder="e.g., driver@company.com" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="hire_date"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Hire Date (Optional)</FormLabel>
+              <FormControl>
+                <Input type="date" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -90,6 +144,10 @@ export default function AddEditDriverForm({ onSave, driverToEdit, onFinished }: 
                   <SelectItem value="Absent">Absent</SelectItem>
                   <SelectItem value="Late">Late</SelectItem>
                   <SelectItem value="Not Logged In">Not Logged In</SelectItem>
+                  <SelectItem value="On Break">On Break</SelectItem>
+                  <SelectItem value="Off Duty">Off Duty</SelectItem>
+                  <SelectItem value="Holiday">Holiday</SelectItem>
+                  <SelectItem value="Sick Leave">Sick Leave</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
