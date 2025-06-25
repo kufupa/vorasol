@@ -52,6 +52,9 @@ export default function DashboardOverviewPage() {
   const [driverToEdit, setDriverToEdit] = useState<Driver | null>(null)
   const [selectedDriverForProfile, setSelectedDriverForProfile] = useState<Driver | null>(null)
   const [itemToDelete, setItemToDelete] = useState<{ id: string; type: "client" | "driver" } | null>(null)
+  
+  // Track drivers being updated for status changes
+  const [updatingDrivers, setUpdatingDrivers] = useState<Set<string>>(new Set())
 
   // Load data from API
   const loadDashboardData = async () => {
@@ -212,20 +215,61 @@ export default function DashboardOverviewPage() {
         } else {
           showToast("Failed to update driver. Please try again.", "error")
         }
+      }    } else {
+      // Add new driver - use real API call
+      try {
+        const addDriverData: any = {
+          employee_id: data.id,
+          presence: ApiService.convertDisplayToPresenceStatus(data.presence),
+        }
+        
+        // Only include optional fields if they have values
+        if (data.name && data.name.trim()) addDriverData.name = data.name.trim()
+        if (data.passport && data.passport.trim()) addDriverData.passport = data.passport.trim()
+        if (data.phone && data.phone.trim()) addDriverData.phone = data.phone.trim()
+        if (data.email && data.email.trim()) addDriverData.email = data.email.trim()
+        if (data.hire_date && data.hire_date.trim()) addDriverData.hire_date = data.hire_date.trim()
+        
+        const response = await ApiService.addDriver(addDriverData)
+        
+        if (response.success && response.driver_info) {
+          // Create new driver for local state
+          const newDriver: Driver = {
+            id: response.driver_info.employee_id,
+            name: response.driver_info.name || data.name || "Unknown",
+            employeeId: response.driver_info.employee_id,
+            presence: ApiService.convertPresenceStatusToDisplay(response.driver_info.initial_status) as Driver["presence"],
+            workHours: data.workHours || "0h 0m",
+            contact: response.driver_info.phone || "N/A",
+            poc: "N/A",
+            lastUpdate: new Date().toISOString(),
+            passport: response.driver_info.passport,
+            phone: response.driver_info.phone,
+            email: response.driver_info.email,
+            hire_date: response.driver_info.hire_date,
+          }
+          
+          setDrivers([...drivers, newDriver])
+          showToast(`Driver ${response.driver_info.name || data.name} added successfully!`, "success")
+          
+          // Refresh dashboard data to reflect changes in overview
+          await refreshData()
+        }
+      } catch (error) {
+        console.error("Error adding driver:", error)
+        
+        // Provide more specific error messages
+        const errorMessage = error instanceof Error ? error.message : "Unknown error occurred"
+        if (errorMessage.includes("Validation Error:")) {
+          showToast(`Validation failed: ${errorMessage.replace("Validation Error: ", "")}`, "error")
+        } else if (errorMessage.includes("HTTP Error:")) {
+          showToast(`Server error: ${errorMessage.replace("HTTP Error: ", "")}`, "error")
+        } else if (errorMessage.includes("already exists")) {
+          showToast(`Driver with ID ${data.id} already exists. Please use a different ID.`, "error")
+        } else {
+          showToast("Failed to add driver. Please try again.", "error")
+        }
       }
-    } else {
-      // Add new driver (still local only since backend doesn't have create driver endpoint)
-      const newDriver: Driver = {
-        ...data,
-        id: `D${Date.now()}`,
-        employeeId: data.id,
-        contact: data.phone || "N/A",
-        poc: "N/A",
-        workHours: data.workHours || "0h 0m",
-        lastUpdate: new Date().toISOString(),
-      }
-      setDrivers([...drivers, newDriver])
-      showToast("Driver added successfully (local only).", "success")
     }
     setIsDriverModalOpen(false)
   }
@@ -247,6 +291,59 @@ export default function DashboardOverviewPage() {
   const handleOpenProfileSheet = (driver: Driver) => {
     setSelectedDriverForProfile(driver)
     setIsProfileSheetOpen(true)
+  }
+
+  // Handle driver status change from dropdown
+  const handleDriverStatusChange = async (driverId: string, newStatus: Driver["presence"]) => {
+    // Add driver to updating set
+    setUpdatingDrivers(prev => new Set(prev).add(driverId))
+    
+    try {
+      // Find the current driver
+      const currentDriver = drivers.find(d => d.id === driverId)
+      if (!currentDriver) {
+        throw new Error("Driver not found")
+      }
+
+      // Call the edit driver API to update presence status
+      const response = await ApiService.editDriver(currentDriver.employeeId, {
+        presence: newStatus
+      })
+
+      if (response.success && response.driver_info) {
+        // Update local state with the updated driver data
+        const updatedDriver: Driver = {
+          ...currentDriver,
+          presence: ApiService.convertPresenceStatusToDisplay(response.driver_info.presence_status) as Driver["presence"],
+          lastUpdate: new Date().toISOString(),
+        }
+        
+        setDrivers(prev => prev.map(d => d.id === driverId ? updatedDriver : d))
+        showToast(`Driver status updated to ${newStatus}`, "success")
+        
+        // Refresh dashboard data to reflect changes in overview
+        await refreshData()
+      }
+    } catch (error) {
+      console.error("Error updating driver status:", error)
+      
+      // Provide specific error messages
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred"
+      if (errorMessage.includes("Validation Error:")) {
+        showToast(`Validation failed: ${errorMessage.replace("Validation Error: ", "")}`, "error")
+      } else if (errorMessage.includes("HTTP Error:")) {
+        showToast(`Server error: ${errorMessage.replace("HTTP Error: ", "")}`, "error")
+      } else {
+        showToast(`Failed to update status: ${errorMessage}`, "error")
+      }
+    } finally {
+      // Remove driver from updating set
+      setUpdatingDrivers(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(driverId)
+        return newSet
+      })
+    }
   }
 
   return (
@@ -295,6 +392,8 @@ export default function DashboardOverviewPage() {
         drivers={drivers}
         onEditDriver={handleOpenProfileSheet}
         onRemoveDriver={handleOpenDeleteDriverDialog}
+        onStatusChange={handleDriverStatusChange}
+        updatingDrivers={updatingDrivers}
       />
 
       {/* Modals and Dialogs */}

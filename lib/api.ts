@@ -11,6 +11,8 @@ import type {
   HealthResponse,
   EditDriverRequest,
   EditDriverResponse,
+  AddDriverRequest,
+  AddDriverResponse,
   ValidationErrorResponse
 } from "./types"
 
@@ -293,6 +295,42 @@ export class ApiService {
       "Late": "checked_in", // Map Late to checked_in as it's not in backend
     }
     return displayMap[display] || "not_checked_in"
+  }
+  
+  static async addDriver(driverData: AddDriverRequest): Promise<AddDriverResponse> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/admin/add-driver`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(driverData),
+      })
+      
+      // Handle 422 validation errors separately
+      if (response.status === 422) {
+        const validationError: ValidationErrorResponse = await response.json()
+        const errorMessages = validationError.detail?.map((err) => err.msg).join(", ") || "Validation failed"
+        throw new Error(`Validation Error: ${errorMessages}`)
+      }
+      
+      // Handle other non-200 status codes
+      if (!response.ok) {
+        throw new Error(`HTTP Error: ${response.status} ${response.statusText}`)
+      }
+      
+      const data: AddDriverResponse = await response.json()
+      
+      // Handle business logic errors (success: false)
+      if (!data.success) {
+        throw new Error(data.message || "Failed to add driver")
+      }
+      
+      return data
+    } catch (error) {
+      console.error("Error adding driver:", error)
+      throw error
+    }
   }
   
   static async editDriver(employeeId: string, updateData: EditDriverRequest): Promise<EditDriverResponse> {

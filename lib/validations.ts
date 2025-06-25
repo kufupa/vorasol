@@ -13,8 +13,8 @@ export const clientSchema = z
   })
 
 export const driverSchema = z.object({
-  name: z.string().min(1, { message: "Driver name must be at least 1 character." }),
-  id: z.string().min(1, { message: "Driver ID is required." }),
+  name: z.string().min(1, { message: "Driver name must be at least 1 character." }).optional().or(z.literal("")),
+  id: z.string().min(1, { message: "Employee ID is required." }),
   workHours: z.string().optional(),
   presence: z.enum(["Present", "Absent", "Late", "Not Logged In", "On Break", "Off Duty", "Holiday", "Sick Leave"]),
   // Additional fields for backend API (match backend validation rules)

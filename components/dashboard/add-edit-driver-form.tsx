@@ -36,13 +36,12 @@ export default function AddEditDriverForm({ onSave, driverToEdit, onFinished }: 
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">        <FormField
           control={form.control}
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Driver Name</FormLabel>
+              <FormLabel>Driver Name (Optional)</FormLabel>
               <FormControl>
                 <Input placeholder="e.g., John Doe" {...field} />
               </FormControl>
@@ -55,14 +54,14 @@ export default function AddEditDriverForm({ onSave, driverToEdit, onFinished }: 
           name="id"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Driver ID</FormLabel>
+              <FormLabel>Employee ID *</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., D004" {...field} disabled={!!driverToEdit} />
+                <Input placeholder="e.g., DRV004" {...field} disabled={!!driverToEdit} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
-        />        <FormField
+        /><FormField
           control={form.control}
           name="workHours"
           render={({ field }) => (
@@ -126,24 +125,23 @@ export default function AddEditDriverForm({ onSave, driverToEdit, onFinished }: 
               <FormMessage />
             </FormItem>
           )}
-        />
-        <FormField
+        />        <FormField
           control={form.control}
           name="presence"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Presence Status</FormLabel>
+              <FormLabel>Initial Presence Status</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a status" />
+                    <SelectValue placeholder="Select initial status" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
+                  <SelectItem value="Not Logged In">Not Logged In (Default)</SelectItem>
                   <SelectItem value="Present">Present</SelectItem>
                   <SelectItem value="Absent">Absent</SelectItem>
                   <SelectItem value="Late">Late</SelectItem>
-                  <SelectItem value="Not Logged In">Not Logged In</SelectItem>
                   <SelectItem value="On Break">On Break</SelectItem>
                   <SelectItem value="Off Duty">Off Duty</SelectItem>
                   <SelectItem value="Holiday">Holiday</SelectItem>
@@ -153,12 +151,11 @@ export default function AddEditDriverForm({ onSave, driverToEdit, onFinished }: 
               <FormMessage />
             </FormItem>
           )}
-        />
-        <div className="flex justify-end gap-2 pt-4">
+        />        <div className="flex justify-end gap-2 pt-4">
           <Button type="button" variant="outline" onClick={onFinished}>
             Cancel
           </Button>
-          <Button type="submit">Save Driver</Button>
+          <Button type="submit">{driverToEdit ? "Update Driver" : "Add Driver"}</Button>
         </div>
       </form>
     </Form>

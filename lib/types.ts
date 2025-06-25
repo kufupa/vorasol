@@ -135,6 +135,31 @@ export interface EditDriverResponse {
   } | null
 }
 
+// Add Driver Request/Response
+export interface AddDriverRequest {
+  employee_id: string
+  presence: string
+  name?: string
+  passport?: string
+  phone?: string
+  email?: string
+  hire_date?: string
+}
+
+export interface AddDriverResponse {
+  success: boolean
+  message: string
+  driver_info?: {
+    employee_id: string
+    name: string
+    passport: string
+    phone: string
+    email: string
+    hire_date: string
+    initial_status: string
+  } | null
+}
+
 // Validation Error Response (422 status)
 export interface ValidationErrorResponse {
   detail: Array<{
