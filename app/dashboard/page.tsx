@@ -197,12 +197,15 @@ export default function DashboardOverviewPage() {
             email: response.driver_info.email,
             hire_date: response.driver_info.hire_date,
           }
-          
-          setDrivers(drivers.map((d) => (d.id === driverToEdit.id ? updatedDriver : d)))
+            setDrivers(drivers.map((d) => (d.id === driverToEdit.id ? updatedDriver : d)))
           showToast("Driver updated successfully!", "success")
           
           // Refresh dashboard data to reflect changes in overview
-          await refreshData()        }
+          await refreshData()
+          
+          // Close modal on success
+          setIsDriverModalOpen(false)
+        }
       } catch (error) {
         console.error("Error updating driver:", error)
         
@@ -215,7 +218,9 @@ export default function DashboardOverviewPage() {
         } else {
           showToast("Failed to update driver. Please try again.", "error")
         }
-      }    } else {
+        // Don't close modal on error - let user try again
+        throw error
+      }} else {
       // Add new driver - use real API call
       try {
         const addDriverData: any = {
@@ -248,12 +253,14 @@ export default function DashboardOverviewPage() {
             email: response.driver_info.email,
             hire_date: response.driver_info.hire_date,
           }
-          
-          setDrivers([...drivers, newDriver])
+            setDrivers([...drivers, newDriver])
           showToast(`Driver ${response.driver_info.name || data.name} added successfully!`, "success")
           
           // Refresh dashboard data to reflect changes in overview
           await refreshData()
+          
+          // Close modal on success
+          setIsDriverModalOpen(false)
         }
       } catch (error) {
         console.error("Error adding driver:", error)
@@ -269,9 +276,10 @@ export default function DashboardOverviewPage() {
         } else {
           showToast("Failed to add driver. Please try again.", "error")
         }
+        // Don't close modal on error - let user try again
+        throw error
       }
     }
-    setIsDriverModalOpen(false)
   }
 
   const handleOpenDeleteDriverDialog = (driverId: string) => {

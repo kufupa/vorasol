@@ -2,21 +2,26 @@
 
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useState } from "react"
 import type { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { driverSchema } from "@/lib/validations"
+import { Loader2 } from "lucide-react"
 import type { Driver } from "@/lib/types"
 
 interface AddEditDriverFormProps {
-  onSave: (data: z.infer<typeof driverSchema>) => void
+  onSave: (data: z.infer<typeof driverSchema>) => Promise<void>
   driverToEdit: Driver | null
   onFinished: () => void
 }
 
-export default function AddEditDriverForm({ onSave, driverToEdit, onFinished }: AddEditDriverFormProps) {  const form = useForm<z.infer<typeof driverSchema>>({
+export default function AddEditDriverForm({ onSave, driverToEdit, onFinished }: AddEditDriverFormProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const form = useForm<z.infer<typeof driverSchema>>({
     resolver: zodResolver(driverSchema),
     defaultValues: {
       name: driverToEdit?.name || "",
@@ -29,9 +34,15 @@ export default function AddEditDriverForm({ onSave, driverToEdit, onFinished }: 
       hire_date: driverToEdit?.hire_date || "",
     },
   })
-
-  function onSubmit(data: z.infer<typeof driverSchema>) {
-    onSave(data)
+  async function onSubmit(data: z.infer<typeof driverSchema>) {
+    setIsSubmitting(true)
+    try {
+      await onSave(data)
+    } catch (error) {
+      console.error("Form submission error:", error)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -43,7 +54,7 @@ export default function AddEditDriverForm({ onSave, driverToEdit, onFinished }: 
             <FormItem>
               <FormLabel>Driver Name (Optional)</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., John Doe" {...field} />
+                <Input placeholder="e.g., John Doe" {...field} disabled={isSubmitting} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -56,32 +67,31 @@ export default function AddEditDriverForm({ onSave, driverToEdit, onFinished }: 
             <FormItem>
               <FormLabel>Employee ID *</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., DRV004" {...field} disabled={!!driverToEdit} />
+                <Input placeholder="e.g., DRV004" {...field} disabled={!!driverToEdit || isSubmitting} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
-        /><FormField
+        />        <FormField
           control={form.control}
           name="workHours"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Work Hours (Optional)</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., 8h 15m" {...field} />
+                <Input placeholder="e.g., 8h 15m" {...field} disabled={isSubmitting} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
-        />
-        <FormField
+        />        <FormField
           control={form.control}
           name="passport"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Passport Number (Optional)</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., P123456789" {...field} />
+                <Input placeholder="e.g., P123456789" {...field} disabled={isSubmitting} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -94,7 +104,7 @@ export default function AddEditDriverForm({ onSave, driverToEdit, onFinished }: 
             <FormItem>
               <FormLabel>Phone Number (Optional)</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., +971501234567" {...field} />
+                <Input placeholder="e.g., +971501234567" {...field} disabled={isSubmitting} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -107,7 +117,19 @@ export default function AddEditDriverForm({ onSave, driverToEdit, onFinished }: 
             <FormItem>
               <FormLabel>Email Address (Optional)</FormLabel>
               <FormControl>
-                <Input type="email" placeholder="e.g., driver@company.com" {...field} />
+                <Input type="email" placeholder="e.g., driver@company.com" {...field} disabled={isSubmitting} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />        <FormField
+          control={form.control}
+          name="hire_date"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Hire Date (Optional)</FormLabel>
+              <FormControl>
+                <Input type="date" {...field} disabled={isSubmitting} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -115,23 +137,11 @@ export default function AddEditDriverForm({ onSave, driverToEdit, onFinished }: 
         />
         <FormField
           control={form.control}
-          name="hire_date"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Hire Date (Optional)</FormLabel>
-              <FormControl>
-                <Input type="date" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />        <FormField
-          control={form.control}
           name="presence"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Initial Presence Status</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select initial status" />
@@ -151,11 +161,28 @@ export default function AddEditDriverForm({ onSave, driverToEdit, onFinished }: 
               <FormMessage />
             </FormItem>
           )}
-        />        <div className="flex justify-end gap-2 pt-4">
-          <Button type="button" variant="outline" onClick={onFinished}>
+        /><div className="flex justify-end gap-2 pt-4">
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={onFinished}
+            disabled={isSubmitting}
+          >
             Cancel
           </Button>
-          <Button type="submit">{driverToEdit ? "Update Driver" : "Add Driver"}</Button>
+          <Button 
+            type="submit" 
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {driverToEdit ? "Updating..." : "Adding..."}
+              </>
+            ) : (
+              driverToEdit ? "Update Driver" : "Add Driver"
+            )}
+          </Button>
         </div>
       </form>
     </Form>

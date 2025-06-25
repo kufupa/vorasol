@@ -92,9 +92,24 @@ Frontend presence values are automatically converted to backend status values:
 2. Form opens with all optional fields except Employee ID
 3. User fills required Employee ID and any optional information
 4. Form validates input before submission
-5. API call is made with proper data formatting
-6. Success: Driver appears in table and dashboard updates
-7. Error: Specific error message is shown to user
+5. **Loading State**: When user clicks "Add Driver", form shows loading spinner and disables all fields
+6. **API Processing**: Form remains open during API call with visual feedback
+7. **Success**: Driver appears in table, dashboard updates, and modal closes automatically
+8. **Error**: Specific error message is shown, form remains open for user to retry
+
+## New Loading State Features
+
+### Form Component Updates
+- Added `isSubmitting` state to track form submission
+- Submit button shows spinner and "Adding..." / "Updating..." text during submission
+- All form fields are disabled during submission to prevent changes
+- Cancel button is disabled during submission to prevent accidental closure
+
+### UX Improvements
+- **Visual Feedback**: Loading spinner and changed button text provide clear indication of processing
+- **Error Handling**: Modal stays open on errors, allowing users to fix issues and retry
+- **Success Flow**: Modal only closes on successful operation
+- **Prevention**: All interactions disabled during submission to prevent race conditions
 
 ## Testing Notes
 
